@@ -1,0 +1,8 @@
+/.vscode
+/node_modules
+/storages
+/*.conf
+/*-lock.json
+/log
+/schema
+/*.zip
