@@ -89,7 +89,7 @@ exports.successResponse = function (res, data) {
     if (table && table.TABLE_TYPE == "BASE TABLE") {
         for(var i in table.FIELDS) {
             var field = table.FIELDS[i];
-            if(field.COLUMN_NAME == 'c_change_user') {
+            if(field.COLUMN_NAME == 'd_change_date') {
 
                 if(!global.schemas.jrnl[tableName]) {
                     global.schemas.jrnl[tableName] = {

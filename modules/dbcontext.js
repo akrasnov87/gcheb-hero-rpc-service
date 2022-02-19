@@ -133,19 +133,15 @@ function setJournal(data, userId, createMode) {
     if (Array.isArray(data) == true) {
         for (var i in data) {
             if (createMode) {
-                data[i].c_created_user = userId;
                 data[i].d_created_date = new Date()
             } else {
-                data[i].c_change_user = userId;
                 data[i].d_change_date = new Date();
             }
         }
     } else {
         if (createMode) {
-            data.c_created_user = userId;
             data.d_created_date = new Date()
         } else {
-            data.c_change_user = userId;
             data.d_change_date = new Date();
         }
     }
