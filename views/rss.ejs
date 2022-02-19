@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rss xmlns:yandex="http://news.yandex.ru" 
+    xmlns:media="http://search.yahoo.com/mrss/" 
+    xmlns:turbo="http://turbo.yandex.ru" 
+    version="2.0">
+    <channel>
+        <title>Год выдающихся земляков</title>
+        <link><%=site%></link>
+        <description><%=description%></description>
+        <turbo:analytics type="Yandex" id="123456"></turbo:analytics>
+        <turbo:adNetwork></turbo:adNetwork>
+        <% for(var i = 0; i < items.length; i++) { var item = items[i]; %>
+        <item turbo="true">
+            <link><%=item.link%></link>
+            <title><%=item.title%></title>
+            <author><%=item.author%></author>
+            <category><%=item.category%></category>
+            <pubDate><%=item.pubDate%></pubDate>
+            <turbo:content>
+                <![CDATA[
+                    <header>
+                        <h1><%=item.title%></h1>
+                        <h2><%=item.category%></h2>
+                    </header>
+                    <figure>
+                        <img src="<%=item.img%>">
+                    </figure>
+                    <section>
+                        <%=item.description%>
+                    <section>
+
+                    <% if (item.comments) { %>
+                    <section>
+                        <%=item.comments%>
+                    <section>
+                    <% } %>
+                ]]>
+            </turbo:content>
+        </item>
+        <% } %>
+    </channel>
+</rss>
