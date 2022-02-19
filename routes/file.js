@@ -12,12 +12,12 @@ var db = require('../modules/dbcontext');
 var result_layout = require('mobnius-pg-dbcontext/modules/result-layout');
 var Console = require('../modules/log');
 const args = require('../modules/conf')();
+var mime = require('mime-types');
 
 var fs = require('fs');
 var pth = require('path');
 var join = pth.join;
 var fx = require('mkdir-recursive');
-var uuid = require('uuid');
 
 module.exports = function () {
     router.get('/:id', getStorageItem);
@@ -29,7 +29,7 @@ module.exports = function () {
 /**
  * Получение файла из хранилища по идентификатору
  * @example
- * GET ~/file/:id
+ * GET ~/file/:id?download=true
  * 
  * @todo Исключения;
  * id not found - идентификатор не указан;
@@ -39,7 +39,7 @@ module.exports = function () {
 function getStorageItem(req, res) {
     var id = req.params.id;
     if(id) {
-        db.provider.db().query('select c_dir, c_name, c_mime from dbo.sd_storages where id = $1;', [id], function(err, row) {
+        db.provider.db().query('select c_image_path from dbo.dd_documents where id = $1;', [id], function(err, row) {
             if(err) {
                 Console.error(`Получение файла: ${err.toString()}.`, 'err');
 
@@ -47,10 +47,12 @@ function getStorageItem(req, res) {
             } else {
                 if(row) {
                     var record = row.rows[0];
-                    var file = join(args.storage, record.c_dir, record.c_name);
+                    var file = join(args.storage, record.c_image_path);
                     if(file.indexOf(args.storage) == 0 && fs.existsSync(file)) {
-                        res.setHeader('Content-Disposition', `attachment; filename=${encodeURI(record.c_name)}`);
-                        res.setHeader("Content-Type", record.c_mime);
+                        res.setHeader('Content-Disposition', `attachment; filename=${encodeURI(pth.basename(record.c_image_path))}`);
+                        if (req.query.download == true) {
+                            res.setHeader("Content-Type", mime.lookup(pth.basename(record.c_image_path)));
+                        }
                         return res.sendFile(file);
                     }
                 } 
@@ -77,7 +79,6 @@ function getStorageItem(req, res) {
  * Body form-data
  * {
  *      file: bytes - вложенный файл
- *      path: string - путь для хранения, например /temp/readme.md. По умолчанию будет установлено имя вложенного файла
  * }
  * 
  * @todo Исключения;
@@ -95,7 +96,7 @@ function uploadFile(req, res) {
 
     var file = req.files.file;
     var dt = new Date();
-    var path = join(req.body.path || join(dt.getFullYear().toString(), (dt.getMonth() + 1).toString(), dt.getDate().toString(), file.name));
+    var path = join(dt.getFullYear().toString(), (dt.getMonth() + 1).toString(), dt.getDate().toString(), file.name);
 
     if(file && path) {
         var filePath = join(args.storage, path);
@@ -114,25 +115,11 @@ function uploadFile(req, res) {
                     fs.unlinkSync(filePath);
                     return res.json(result_layout.error(['error write file']));
                 } else {
-                    var id = uuid.v4();
-                    // файл записали
+                    req.body.c_image_path = filePath.replace(args.storage, '');
 
-                    db.table('dbo', 'sd_storages', {}).Add({ 
-                        id: id,
-                        c_name: file.name,
-                        c_dir: dirName.replace(args.storage, ''),
-                        n_length: file.size,
-                        d_date: new Date(),
-                        c_mime: file.mimetype
-                    }, function(output) {
-                        if(!output.meta.success) {
-                            Console.error(`Загрузка данных: задан не корректный путь для хранения ${path}`, 'err');
-                            fs.unlinkSync(filePath);
-
-                            res.json(result_layout.error(['error save db']));
-                        } else {
-                            res.json(result_layout.ok([id]));
-                        }
+                    // создам запись в БД
+                    db.provider.insert('dbo', 'dd_documents', req.body, (output) => {
+                        return res.json(output);
                     });
                 }
             });

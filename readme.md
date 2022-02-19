@@ -1,12 +1,25 @@
 ### Описание
 
+Документация с описанием базы данных расположена по адресу https://gcheb.mobwal.com/hero-dev-db.html (ссылка является временной, т.к. будет изменено доменное имя)
+
+
+### Основные запросы
+
+#### Работа с документами и файловой системой
+
+Создание документа в базе данных производиться путем вызова функции POST ~/file/upload (https://docs.appcode.pw/docs?project=hero-rpc-service&file=routes/file.js)
+
+В запросе нужно передать все обязательные поля, которые указаны для таблицы [dd_documents](https://gcheb.mobwal.com/hero-dev-db.html#dbo.table.dd-documents)
+
+Для получения изображения по документу нужно вызвать GET ~/file/[documentID]
+
 #### инициализация приложения
 
 ```
 nodejs conf=/etc/path/prod.conf
 ```
 
-По умолчанию используется порт 3000, но можно указать любой свободный.
+По умолчанию используется порт 5000, но можно указать любой свободный.
 При указание дополнительного аргумента debug будет сохраняться отладочная информация, но на боевом стенде лучше отключать, чтобы не засорять логи.
 По умолчанию информация логируется в каталоге ~/logs.
 
@@ -44,11 +57,11 @@ mail_port=465
 # {mail_secure} - используется ли безопасное соединение
 mail_secure=true
 # {max_file_size} - максимальный размер данных
-max_file_size="100mb"
+max_file_size="1mb"
 # {site} - адрес основного сайта
 site="https://domain.com"
-# {sync_storage} - путь для хранения файлов
-sync_storage="/var/www/files"
+# {storage} - хранилище пользовательских файлов
+storage="/var/www/files"
 ```
 
 #### соглашение об назначении версии приложения
@@ -83,38 +96,4 @@ sync_storage="/var/www/files"
         }
     ]
 }
-```
-
-#### Построение отчетов Pentaho
-
-Для работы с отчета требуется указать следующие настройки
-
-```
-# {report_url} - отчеты
-report_url="https://lkk-sk.it-serv.ru/pentaho/api/repos/{0}/generatedContent?{1}"
-# {report_userid} - логин пользователя для авторизации на pentaho
-report_userid="*****"
-# {report_password} - пароль пользователя для авторизации на pentaho
-report_password="********"
-# {report_output} - тип возвращаемого контента
-report_output="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-# {report_output_page_mode} - режим оторажения отчета
-report_output_page_mode="flow"
-# {report_output_page_mode} - режим оторажения отчета
-report_mime_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-```
-
-Значение ``report_output_page_mode`` может быть двух видов:
-
-* application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-* pageable/pdf
-
-Пример построения отчета:
-
-```
-GET ~/report/report_name.prpt?d_date=&f_division=&target=pageable/pdf
-
-Headers
-rpc-authorization: Token
-Content-Type: application/json
 ```
