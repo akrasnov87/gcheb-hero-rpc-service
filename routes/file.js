@@ -118,7 +118,7 @@ function uploadFile(req, res) {
                     req.body.c_image_path = filePath.replace(args.storage, '');
 
                     // создам запись в БД
-                    db.provider.insert('dbo', 'dd_documents', req.body, (output) => {
+                    db.provider.insertOrUpdate('dbo', 'dd_documents', 'id', req.body, (output) => {
                         return res.json(output);
                     });
                 }
