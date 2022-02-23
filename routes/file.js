@@ -45,7 +45,7 @@ function getStorageItem(req, res) {
 
                 res.json(result_layout.error(['bad query']));
             } else {
-                if(row) {
+                if(row && row.rows[0]) {
                     var record = row.rows[0];
                     var file = join(args.storage, record.c_image_path);
                     if(file.indexOf(args.storage) == 0 && fs.existsSync(file)) {
@@ -82,22 +82,20 @@ function getStorageItem(req, res) {
  * }
  * 
  * @todo Исключения;
- * file not found - файл не найден;
  * bad path - указан неверный путь;
  * file or path not found - файл или путь для хранения не указаны;
  * error write file - ошибка записи файла в файловую систему;
  * error save db - ошибка сохранения информации в базе данных;
  */
 function uploadFile(req, res) {
-    if(!req.files) {
-        Console.debug(`Загрузка данных: файл не найден.`);
-        return res.json(result_layout.error(['file not found']));
+    var file = null;
+    var path = null;
+    if (req.files) {
+        file = req.files.file;
+        var dt = new Date();
+        path = join(dt.getFullYear().toString(), (dt.getMonth() + 1).toString(), dt.getDate().toString(), Date.now() + '_' + file.name);
     }
-
-    var file = req.files.file;
-    var dt = new Date();
-    var path = join(dt.getFullYear().toString(), (dt.getMonth() + 1).toString(), dt.getDate().toString(), file.name);
-
+    
     if(file && path) {
         var filePath = join(args.storage, path);
         if(filePath.indexOf(args.storage) == 0) {
@@ -118,7 +116,7 @@ function uploadFile(req, res) {
                     req.body.c_image_path = filePath.replace(args.storage, '');
 
                     // создам запись в БД
-                    db.provider.insertOrUpdate('dbo', 'dd_documents', 'id', req.body, (output) => {
+                    db.provider.insertOrUpdate('dbo', 'dd_documents', 'id', req.body, null, (output) => {
                         return res.json(output);
                     });
                 }
@@ -128,7 +126,9 @@ function uploadFile(req, res) {
             res.json(result_layout.error(['bad path']));
         }
     } else {
-        Console.debug(`Загрузка данных: файл или путь не указаны`);
-        res.json(result_layout.error(['file or path not found']));
+        // создам запись в БД
+        db.provider.insertOrUpdate('dbo', 'dd_documents', 'id', req.body, null, (output) => {
+            return res.json(output);
+        });
     }
 }

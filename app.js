@@ -18,6 +18,7 @@ var fileUpload = require('express-fileupload');
 var rpc = require('./modules/rpc/index');
 var exists = require('./routes/exists');
 var file = require('./routes/file');
+var report = require('./routes/report');
 var user = require('./routes/user');
 var home = require('./routes/home');
 
@@ -56,6 +57,7 @@ app.use(vPath, express.static(args.storage));
 app.use(vPath, home());
 
 app.use(vPath, rpc('basic'));
+app.use(vPath + 'report', report('basic'));
 
 // проверка на доступность сервера
 app.use(vPath + 'exists', exists());
